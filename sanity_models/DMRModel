@@ -1,0 +1,32 @@
+import torch
+import torch.nn as nn
+import torchvision.models as models
+
+class DMRModel(nn.Module):
+    def __init__(self, model):
+        super(DMRModel,self).__init__()
+        self.features = model.features
+        self.avgpool = model.avgpool
+        self.classifier = model.classifier
+        self.threshold = 1000
+
+    def forward(self,x):
+        y = x[:]
+        for layer in self.features:
+            y = layer(y)
+            x = layer(x)
+            if not torch.equal(x,y):
+                print("Error Found! Layer: ", layer)
+        x = self.avgpool(x)
+        y = self.avgpool(y)
+        x = torch.flatten(x, 1)
+        y = torch.flatten(y, 1)
+        if not torch.equal(x,y):
+            print("Error Found! Layer: ", layer)
+        for layer in self.classifier:
+            y = layer(y)
+            x = layer(x)
+            if not torch.equal(x,y):
+                print("Error Found! Layer: ", layer)
+        return x
+                                                                                                                       ~                                                                                                                       ~                                                                                                                       ~                         
