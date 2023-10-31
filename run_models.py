@@ -39,7 +39,7 @@ for m in test_models:
     m.to(device)
     runtime = 0
     runtime_cpu = 0
-    for _ in range(1):
+    for _ in range(100):
         image = torch.rand((batch_size, c, h, w)).cuda()
 
         start_time_cpu = time.time()
