@@ -82,7 +82,7 @@ class MaintainingSanityModel(nn.Module):
         self.classifier = nn.Sequential(*list(add_sanity(layer, self.num_san, self.idx_arr) for layer in model.classifier))
 
         # Threshold to determine whether mismatch is due to error or precision issue
-        self.threshold = 1000 
+        self.threshold = torch.tensor(1000)
         
     def forward(self,x):
         x = torch.cat([x,x]) # Concatenated DMR
