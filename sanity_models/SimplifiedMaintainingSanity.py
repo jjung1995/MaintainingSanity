@@ -39,7 +39,7 @@ def add_msanity(layer, num_san, idx_arr):
 class SimplifiedMaintainingSanityModel(nn.Module):
     def __init__(self, model):
         super(SimplifiedMaintainingSanityModel,self).__init__()
-        self.threshold = 1000 
+        self.threshold = torch.tensor(1000)
         self.num_san = {}
         self.rev_san = {}
         for layer in model.modules():
