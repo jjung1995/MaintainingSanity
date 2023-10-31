@@ -8,7 +8,7 @@ class ConcatModel(nn.Module):
         self.features = model.features
         self.avgpool = model.avgpool
         self.classifier = model.classifier
-        self.threshold = 1000
+        self.threshold = torch.tensor(1000)
 
     def forward(self,x):
         x = torch.cat([x,x])
