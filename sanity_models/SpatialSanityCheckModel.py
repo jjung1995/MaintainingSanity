@@ -44,20 +44,23 @@ class SimplifiedSanityCheckModel(nn.Module):
         self.threshold = torch.tensor(1000)
 
     def forward(self,x):
+        checksums = torch.zeros(8)
+        idx = 0
         for layer in self.features:
             x = layer(x)
             if isinstance(layer, nn.Conv2d):
-                # Check if each spatial checksum is 0 (or close to 0)
-                if torch.max(torch.abs(torch.sum(x,1))) > self.threshold:
-                    print("Error found in layer: ", layer) # Exclude checksum from input to next layer
+                checksums[idx] = torch.max(torch.abs(torch.sum(x,1)))
+                idx += 1
                 x = x[:,:-1]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         for layer in self.classifier:
             x = layer(x)
             if isinstance(layer, nn.Linear):
-                # Check if each spatial checksum is 0 (or close to 0)
-                if torch.abs(torch.sum(x,1)) > self.threshold:
-                    print("Error found in layer: ", layer) # Exclude checksum from input to next layer
+                checksums[idx] = torch.abs(torch.sum(x,1))
+                idx += 1
                 x = x[:,:-1]
+        if torch.max(checksums) > self.threshold:
+            print("Error Detected")
+        return x
         return x
