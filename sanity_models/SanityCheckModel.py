@@ -44,34 +44,33 @@ class SanityCheckModel(nn.Module):
         self.threshold = torch.tensor(1000)
 
     def forward(self,x):
+        checksums = torch.zeros(16)
+        idx = 0
         for layer in self.features:
             if isinstance(layer, nn.Conv2d):
-                y = x.clone().detach() * -1 # Duplicate input for temporal checksum
+                y = x.clone().detach() * -1
             x = layer(x)
             if isinstance(layer, nn.Conv2d):
-                # Temporal checksum
                 y = layer(y)
                 b = layer.bias.data.clone() * -2
-                if torch.max(torch.abs(x + y + b[:, None, None])) > self.threshold:
-                    print("Error found in layer: ", layer)
-                # Check if each spatial checksum is 0 (or close to 0)
-                if torch.max(torch.abs(torch.sum(x,1))) > self.threshold:
-                    print("Error found in layer: ", layer) # Exclude checksum from input to next layer
+                checksums[idx] = torch.max(torch.abs(x + y + b[:, None, None]))
+                checksums[idx+1] = torch.max(torch.abs(torch.sum(x,1)))
+                idx += 2
                 x = x[:,:-1]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         for layer in self.classifier:
             if isinstance(layer, nn.Linear):
-                y = x.clone().detach() * -1 # Duplicate input for temporal checksum
+                y = x.clone().detach() * -1
             x = layer(x)
             if isinstance(layer, nn.Linear):
-                # Temporal checksum
+                # Temporal
                 y = layer(y)
                 b = layer.bias.data.clone() * -2
-                if torch.max(torch.abs(x + y + b)) > self.threshold:
-                    print("Error found in layer: ", layer)
-                # Check if each spatial checksum is 0 (or close to 0)
-                if torch.abs(torch.sum(x,1)) > self.threshold:
-                    print("Error found in layer: ", layer) # Exclude checksum from input to next layer
+                checksums[idx] = torch.max(torch.abs(x + y + b))
+                checksums[idx+1] = torch.abs(torch.sum(x,1))
+                idx += 2
                 x = x[:,:-1]
+        if torch.max(checksums) > self.threshold:
+            print("Error Detected")
         return x
