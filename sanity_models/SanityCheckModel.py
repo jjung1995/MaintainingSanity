@@ -48,29 +48,27 @@ class SanityCheckModel(nn.Module):
         idx = 0
         for layer in self.features:
             if isinstance(layer, nn.Conv2d):
-                y = x.clone().detach() * -1
+                x = torch.cat([x,x.clone().detach() * -1])
             x = layer(x)
             if isinstance(layer, nn.Conv2d):
-                y = layer(y)
                 b = layer.bias.data.clone() * -2
-                checksums[idx] = torch.max(torch.abs(x + y + b[:, None, None]))
+                checksums[idx] = torch.max(torch.abs(torch.sum(x,0) + b[:, None, None]))
                 checksums[idx+1] = torch.max(torch.abs(torch.sum(x,1)))
                 idx += 2
-                x = x[:,:-1]
+                x = x[:1,:-1]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         for layer in self.classifier:
             if isinstance(layer, nn.Linear):
-                y = x.clone().detach() * -1
+                x = torch.cat([x,x.clone().detach() * -1])
             x = layer(x)
             if isinstance(layer, nn.Linear):
                 # Temporal
-                y = layer(y)
                 b = layer.bias.data.clone() * -2
-                checksums[idx] = torch.max(torch.abs(x + y + b))
-                checksums[idx+1] = torch.abs(torch.sum(x,1))
+                checksums[idx] = torch.max(torch.abs(torch.sum(x,0) + b))
+                checksums[idx+1] = torch.max(torch.abs(torch.sum(x,1)))
                 idx += 2
-                x = x[:,:-1]
+                x = x[:1,:-1]
         if torch.max(checksums) > self.threshold:
             print("Error Detected")
         return x
