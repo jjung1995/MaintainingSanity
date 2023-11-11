@@ -45,21 +45,33 @@ class SanityCheckModel(nn.Module):
 
     def forward(self,x):
         for layer in self.features:
+            if isinstance(layer, nn.Conv2d):
+                y = x.clone().detach() * -1 # Duplicate input for temporal checksum
             x = layer(x)
             if isinstance(layer, nn.Conv2d):
-                # Check if each checksum is 0 (or close to 0)
-                print(x.size())
-                if torch.max(torch.abs(torch.sum(x,1))) > self.threshold:
+                # Temporal checksum
+                y = layer(y)
+                b = layer.bias.data.clone() * -2
+                if torch.max(torch.abs(x + y + b[:, None, None])) > self.threshold:
                     print("Error found in layer: ", layer)
-                print(torch.sum(x,1))
-                x = x[:,:-1] # Exclude checksum from input to next layer
+                # Check if each spatial checksum is 0 (or close to 0)
+                if torch.max(torch.abs(torch.sum(x,1))) > self.threshold:
+                    print("Error found in layer: ", layer) # Exclude checksum from input to next layer
+                x = x[:,:-1]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         for layer in self.classifier:
+            if isinstance(layer, nn.Linear):
+                y = x.clone().detach() * -1 # Duplicate input for temporal checksum
             x = layer(x)
             if isinstance(layer, nn.Linear):
-                # Check if each checksum is 0 (or close to 0)
-                if torch.abs(torch.sum(x,1)) > self.threshold:
+                # Temporal checksum
+                y = layer(y)
+                b = layer.bias.data.clone() * -2
+                if torch.max(torch.abs(x + y + b)) > self.threshold:
                     print("Error found in layer: ", layer)
-                x = x[:,:-1] # Exclude checksum from input to next layer
+                # Check if each spatial checksum is 0 (or close to 0)
+                if torch.max(torch.abs(torch.sum(x,1))) > self.threshold:
+                    print("Error found in layer: ", layer) # Exclude checksum from input to next layer
+                x = x[:,:-1]
         return x
