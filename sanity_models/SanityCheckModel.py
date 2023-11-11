@@ -71,7 +71,7 @@ class SanityCheckModel(nn.Module):
                 if torch.max(torch.abs(x + y + b)) > self.threshold:
                     print("Error found in layer: ", layer)
                 # Check if each spatial checksum is 0 (or close to 0)
-                if torch.max(torch.abs(torch.sum(x,1))) > self.threshold:
+                if torch.abs(torch.sum(x,1)) > self.threshold:
                     print("Error found in layer: ", layer) # Exclude checksum from input to next layer
                 x = x[:,:-1]
         return x
