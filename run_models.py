@@ -27,13 +27,16 @@ ms_model.eval()
 sms_model = SimplifiedMaintainingSanityModel(alex_model)
 sms_model.eval()
 
+ums_model = UnrolledMaintainingSanityModel_CheckingAfterConvFully(alex_model)
+ums_model.eval()
+
 batch_size = 1
 h = 224
 w = 224
 c = 3
 
 device = torch.device("cuda")
-test_models = [alex_model, alex_model, dmr_model, concat_model, sc_model, sms_model, ms_model] # must run a dummy model first
+test_models = [alex_model, alex_model, dmr_model, concat_model, sc_model, sms_model, ms_model, ums_model] # must run a dummy model first
 
 for m in test_models:
     m.to(device)
