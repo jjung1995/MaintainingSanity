@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+import copy
 
 class InputTMRFineModel(nn.Module):
     def __init__(self, model):
         super(InputTMRFineModel,self).__init__()
-        self.features = model.features
-        self.avgpool = model.avgpool
-        self.classifier = model.classifier
+        self.features = copy.deepcopy(model.features)
+        self.avgpool = copy.deepcopy(model.avgpool)
+        self.classifier = copy.deepcopy(model.classifier)
         self.threshold = torch.tensor(1000)
 
     def forward(self,x):
