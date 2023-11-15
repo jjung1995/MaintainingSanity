@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn 
 import torchvision.models as models
+import copy
 
 def add_sanity_check(layer):
     # Adding spatial checksum for convolution layer
@@ -38,7 +39,7 @@ class SimplifiedSanityCheckModel(nn.Module):
         super(SimplifiedSanityCheckModel,self).__init__()
         # Apply Sanity-Check to each layer
         self.features = nn.Sequential(*list(add_sanity_check(layer) for layer in model.features))
-        self.avgpool = model.avgpool
+        self.avgpool = copy.deepcopy(model.avgpool)
         self.classifier = nn.Sequential(*list(add_sanity_check(layer) for layer in model.classifier))
         # Threshold to determine whether mismatch is due to error or precision issue
         self.threshold = torch.tensor(1000)
@@ -62,5 +63,4 @@ class SimplifiedSanityCheckModel(nn.Module):
                 x = x[:,:-1]
         if torch.max(checksums) > self.threshold:
             print("Error Detected")
-        return x
         return x
