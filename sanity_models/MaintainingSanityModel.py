@@ -3,6 +3,7 @@ import torch.nn as nn
 import torchvision.models as models
 import math
 import bisect
+import copy
 
 def add_sanity(layer, num_san, idx_arr): 
     # num_san yields required number of sanity neurons given number of original neurons
@@ -78,7 +79,7 @@ class MaintainingSanityModel(nn.Module):
         
         # Apply Maintaining Sanity to each layer
         self.features = nn.Sequential(*list(add_sanity(layer, self.num_san, self.idx_arr) for layer in model.features))
-        self.avgpool = model.avgpool
+        self.avgpool = copy.deepcopy(model.avgpool)
         self.classifier = nn.Sequential(*list(add_sanity(layer, self.num_san, self.idx_arr) for layer in model.classifier))
 
         # Threshold to determine whether mismatch is due to error or precision issue
@@ -201,7 +202,7 @@ class UnrolledMaintainingSanityModel_CheckingAfterConvFully(nn.Module):
         self.idx_arr = [[n-1 for n in range(1,k+1) if n&2**m == 2**m] for m in range(self.num_san[k]-1)]
 
         self.features = nn.Sequential(*list(add_msanity(layer, self.num_san, self.idx_arr) for layer in model.features))
-        self.avgpool = model.avgpool
+        self.avgpool = copy.deepcopy(model.avgpool)
         self.classifier = nn.Sequential(*list(add_msanity(layer, self.num_san, self.idx_arr) for layer in model.classifier))
 
     def forward(self,x):
