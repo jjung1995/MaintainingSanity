@@ -42,7 +42,7 @@ class SanityCheckModel(nn.Module):
         self.avgpool = copy.deepcopy(model.avgpool)
         self.classifier = nn.Sequential(*list(add_sanity_check(layer) for layer in model.classifier))
         # Threshold to determine whether mismatch is due to error or precision issue
-        self.threshold = torch.tensor(1000)
+        self.threshold = torch.tensor(.25)
 
     def forward(self,x):
         checksums = torch.zeros(16)
