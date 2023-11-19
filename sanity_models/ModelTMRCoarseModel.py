@@ -15,7 +15,7 @@ class ModelTMRCoarseModel(nn.Module):
         self.zfeatures = copy.deepcopy(model.features)
         self.zavgpool = copy.deepcopy(model.avgpool)
         self.zclassifier = copy.deepcopy(model.classifier)
-        self.threshold = torch.tensor(1000)
+        self.threshold = torch.tensor(.25)
 
     def forward(self,x):
         x, y, z = x.clone().detach(), x.clone().detach(), x.clone().detach()
