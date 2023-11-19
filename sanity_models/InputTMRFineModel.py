@@ -9,7 +9,7 @@ class InputTMRFineModel(nn.Module):
         self.features = copy.deepcopy(model.features)
         self.avgpool = copy.deepcopy(model.avgpool)
         self.classifier = copy.deepcopy(model.classifier)
-        self.threshold = torch.tensor(1000)
+        self.threshold = torch.tensor(.25)
 
     def forward(self,x):
         x = torch.cat([x.clone().detach(), x.clone().detach(), x.clone().detach()])
